@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マネしてポン！ | 文章・かんじ学習版</title>
+    <script src="https://unpkg.com/wanakana"></script>
+    <style>
+        :root {
+            --primary-font: "UD Digi Kyokasho N-R", "UDデジタル教科書体 N-R", sans-serif;
+            --main-bg: #fdfaf5;
+            --accent-orange: #ff9900;
+            --accent-blue: #2196f3;
+            --card-bg: #ffffff;
+            --text-color: #333;
+        }
+        
+        body {
+            font-family: var(--primary-font);
+            background-color: var(--main-bg);
+            margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            color: var(--text-color);
+        }
+
+        header {
+            background: white; padding: 10px 20px; 
+            box-shadow: 0 4px 0 rgba(0,0,0,0.05);
+            z-index: 100; display: flex; align-items: center; gap: 20px;
+        }
+        
+        .logo { font-size: 24px; font-weight: bold; color: var(--accent-orange); line-height: 1.1; flex-shrink: 0; }
+        .logo span { font-size: 11px; color: #888; display: block; }
+
+        .input-container { width: 100%; max-width: 600px; position: relative; }
+        #input-text {
+            width: 100%; padding: 12px 25px; font-size: 18px; 
+            border: 3px solid #f0f0f0; border-radius: 50px; outline: none;
+            background: #f9f9f9; box-sizing: border-box;
+        }
+        #input-text:focus { border-color: var(--accent-orange); background: white; }
+
+        .app-layout { display: flex; flex: 1; overflow: hidden; }
+
+        /* メイン：文章表示エリア */
+        .main-column { flex: 2; padding: 20px; display: flex; flex-direction: column; }
+        .focus-card {
+            background: var(--card-bg); flex: 1;
+            border-radius: 30px; border: 6px solid var(--accent-orange);
+            display: flex; align-items: center; justify-content: center; 
+            position: relative; box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+            overflow-y: auto; padding: 20px;
+        }
+        .huge-text { 
+            color: #000; text-align: left; line-height: 2.2; 
+            word-break: break-all; width: 100%;
+        }
+        ruby { ruby-align: center; margin: 0 2px; }
+        rt { font-size: 0.4em; color: var(--accent-orange); font-weight: bold; }
+
+        /* サイド：漢字情報エリア */
+        .side-column { 
+            flex: 1; background-color: #f4f6f8; 
+            border-left: 4px solid #eee; padding: 20px; overflow-y: auto; 
+        }
+        .side-title { font-weight: bold; color: #666; margin-bottom: 15px; font-size: 14px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+        
+        .kanji-info-card {
+            background: white; padding: 12px; border-radius: 12px;
+            margin-bottom: 10px; display: flex; align-items: center;
+            justify-content: space-between; border: 2px solid #e0e0e0;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+
+        .kanji-char { font-size: 28px; font-weight: bold; margin-right: 15px; }
+        .kanji-meta { flex: 1; }
+        .grade-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 6px;
+            font-size: 11px; color: white; font-weight: bold; margin-bottom: 4px;
+        }
+        .stroke-link {
+            text-decoration: none; font-size: 12px; color: var(--accent-blue);
+            display: flex; align-items: center; gap: 3px;
+        }
+        .stroke-link:hover { text-decoration: underline; }
+
+        /* 学年別カラー */
+        .g-1 { background-color: #e91e63; } .g-2 { background-color: #ff9800; }
+        .g-3 { background-color: #fbc02d; } .g-4 { background-color: #4caf50; }
+        .g-5 { background-color: #2196f3; } .g-6 { background-color: #9c27b0; }
+        .g-jh { background-color: #34495e; } .g-master { background-color: #555; }
+        .g-god { background: linear-gradient(135deg, #000, #444); color: #ffd700 !important; border: 1px solid #ffd700; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">マネしてポン！<span>ぶんしょう おてほん ツール</span></div>
+    <div class="input-container">
+        <input type="text" id="input-text" placeholder="ここに 文章を 入れてね（例：今日は学校で漢字を習ったよ）" autocomplete="off">
+    </div>
+</header>
+
+<div class="app-layout">
+    <main class="main-column">
+        <div class="focus-card">
+            <div id="display-area" class="huge-text"></div>
+        </div>
+    </main>
+
+    <aside class="side-column">
+        <div class="side-title">つかわれている 漢字</div>
+        <div id="kanji-details"></div>
+    </aside>
+</div>
+
+<script>
+    // 漢字データ (省略せずに保持)
+    const GRADE_DATA = {
+        1: "一右雨円王音下火花貝学気休玉金空月犬見口校左三山子四糸字耳七車手出女小上森人水正生青夕石赤千川先早草足村大中田二日入年白八百木本名目立力林六",
+        2: "引羽雲園遠何科夏家歌画回会海絵外角楽活間丸岩顔汽記帰弓牛魚京強教近兄形計元言原戸古午後語工公広交光考行高黄合谷国黒今才細作算止市矢姉思紙寺自時室社弱首秋週春書少場色食心新親図数西声星晴切雪船線前組走多太体台地池知茶昼長鳥朝直通弟店点電刀冬当東答頭同道読内肉馬売買麦半番父風分聞米歩母方北毎妹万明鳴毛門野用曜羊来藍里理立話",
+        3: "悪安暗医委意育員院飲運泳駅央横屋温化荷界開階寒感漢館岸起期客究急級宮球去橋業曲局銀区苦具君係軽血決研県庫湖向幸港号根祭皿仕死使始指歯詩次事持式実写者主守取酒受州拾終習集住重宿所暑助昭消商章勝乗植申身神真深進世整昔全相送想息速族他打対待代第題炭短談着注柱丁帳調追定庭笛鉄転都度投豆島湯登等動童農波配倍箱畑発反坂板皮悲美鼻筆氷表秒病品負部服福物平返勉放味命面問役薬由油有遊予羊洋葉陽様落流旅両緑礼列練路和",
+        4: "愛案以衣位囲胃印英栄塩億加果貨課芽改械害街各覚完官管関観願希季紀喜旗器機議求泣救給挙漁共協鏡競極訓軍郡径型景芸欠結建健験固功好候航康告差菜最材昨札刷殺察参産散残氏司試児治滋辞鹿失借種周祝順初松笑唱焼象照賞臣信成省清静席積折節説浅戦選然争倉巣束側続卒孫帯隊達単置仲貯兆腸低底停的典伝徒努灯堂働特得毒熱念敗梅博飯飛費必票標不夫付府副粉兵別辺変便包法望牧末満未脈民無約勇要養浴利陸良料量輪類令冷例歴連老労録",
+        5: "圧移因永営衛易益液演応往桜恩可仮価河過快賀解格確額刊幹慣眼基寄規技義逆久旧居許境均禁句群経潔件券険検限現減故個護効厚耕鉱構興講混査再災妻採際在財罪雑酸賛支志枝師資飼示似識質舎謝授修述術準序招承証条状常情織職制性政勢精製税責績接設舌絶銭祖素総造像増則測属率損退貸態団断築張提程適敵統導銅徳独任燃能破犯判版比肥非備俵評貧布婦富武復複仏編弁保墓報豊防貿暴務夢迷綿輸余預容略留領",
+        6: "胃異遺域宇映延沿我灰拡革閣割株干巻看簡危机揮貴疑吸供胸郷勤筋系敬警劇激穴絹権憲源厳己呼誤后孝皇紅降鋼刻穀骨困砂座済裁策冊蚕至私姿視詞誌磁射捨尺若樹収宗就衆従縦縮熟純処署諸除将傷障城蒸針仁垂推寸盛聖誠宣専泉洗染善奏窓創装層操蔵臓存尊宅担探誕段暖値宙忠著庁頂潮賃痛展討党糖届難乳認納脳派拝背肺俳班晩否批秘腹奮並陛閉片補暮宝訪亡忘棒枚幕密盟模訳郵優幼欲翌乱卵覧裏律臨朗論",
+        7: "亜哀挨曖握扱宛嵐依威為畏尉萎偉椅彙違維慰緯壱逸芋陰隠影鋭越援煙鉛縁汚押奥憶臆虞乙俺卸穏佳架華寡箇稼蚊雅餓介塊怪悔懐戒拐皆劾慨概該核殻獲穫郭較隔岳掛潟喝括渇滑褐轄且釜鎌刈甘汗缶肝冠陥乾勘患貫喚換敢棺款閑勧寛憾還艦鑑含奇祈鬼幾輝儀戯詰却脚及丘朽巨拒拠虚距享凶叫峡挟恐恭脅矯響驚仰凝斤琴菌襟謹吟隅勲薫刑茎契恵啓掲渓蛍傾携継詣慶系茎鶏鯨撃懸謙賢軒遣幻玄孤弧枯誇雇顧鼓互呉娯悟碁侯坑孔巧甲更拘肯侯恒抗攻荒郊衡貢購酵克酷獄駒込頃婚昆恨墾懇佐唆詐砕宰栽索酢錯咲擦撮搾桟傘惨桟暫伺刺嗣施旨脂紫雌摯賜諮侍滋慈軸七執湿漆疾芝赦斜煮遮謝邪愁酬秀臭舟襲蹴修柔充獣渋銃叔淑粛塾俊舜瞬旬巡盾准殉循潤遵庶叙徐償匠升掌晶焦衝鐘冗嬢錠譲嘱飾殖触辱伸辛侵津唇娠振浸紳診寝慎震薪刃尽甚迅陣尋腎須吹炊帥粋衰酔遂睡穂随髄枢崇据杉澄瀬是姓征斉牲凄制逝婿誓請戚惜籍摂潜繕阻措粗礎双桑掃葬遭憎促属賊拓卓諾但奪脱棚丹嘆淡端胆鍛壇弾恥致遅痴稚緻畜蓄逐秩窒嫡沖抽衷鋳駐弔挑彫眺釣懲超聴沈珍朕陳鎮墜堤訂帝偵抵艇締泥摘滴哲徹撤迭典粘殿斗吐途渡奴怒倒凍唐塔悼痘陶到逃透稲踏謄闘胴峠匿督篤凸突屯豚曇鈍奈那縄軟尼弐如尿妊忍寧猫粘悩濃把覇婆罵排杯輩培媒賠陪伯拍泊舶薄迫漠爆縛肌鉢髪伐罰抜閥伴帆搬畔繁般藩販範煩頒盤蛮卑彼扉批披泌疲被避尾微匹姫漂描苗浜賓頻敏瓶怖扶敷普浮符腐膚譜侮賦赴附侮舞封伏幅覆払沸噴墳憤丙併塀幣弊偏遍片浦捕舗募慕簿芳邦奉抱泡胞俸倣峰砲崩蜂飽褒縫乏忙坊妨房肪某冒剖紡帽傍膨謀北墨牧睦僕没堀本奔翻凡盆麻摩磨魔毎枚昧埋幕膜又抹慢漫魅岬妙眠矛霧娘銘滅免麺茂妄盲耗猛網黙紋冶弥厄躍闇由愉諭癒唯幽悠憂雄誘憂融与誉庸揚揺擁窯養抑揚謡翼羅裸頼雷絡酪欄濫吏履痢離硫粒隆竜慮虜了僚寮療瞭糧陵倫厘隣塁涙累励鈴隷零霊麗齢暦歴列劣烈裂廉恋錬炉露廊楼浪漏老郎六録論惑枠湾腕"
+    };
+    const GOD_KANJI_LIST = ["鬱", "𰻞", "薔", "薇", "檸", "檬", "醤", "魑", "魅", "魍", "魎"];
+
+    const input = document.getElementById('input-text');
+    const displayArea = document.getElementById('display-area');
+    const kanjiDetails = document.getElementById('kanji-details');
+
+    function getKanjiGrade(char) {
+        if (GOD_KANJI_LIST.includes(char)) return { label: "神", className: "g-god" };
+        for (let g = 1; g <= 7; g++) {
+            if (GRADE_DATA[g].includes(char)) {
+                return g === 7 ? { label: "中学", className: "g-jh" } : { label: g + "年", className: "g-" + g };
+            }
+        }
+        return { label: "達人", className: "g-master" };
+    }
+
+    // Google翻訳APIを代用してふりがなを取得
+    async function getFuriganaHtml(text) {
+        try {
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=ja&dt=rm&q=${encodeURIComponent(text)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            // 簡易的なマッチングロジック
+            // 本来は形態素解析が必要ですが、ここでは「漢字を見つけたらルビを振る」処理を行います
+            return await buildRuby(text);
+        } catch (e) { return text; }
+    }
+
+    // 漢字ごとにふりがなを振る（簡易版：全漢字に対してAPIを叩くと遅いため、文章を一括で送る工夫）
+    async function buildRuby(text) {
+        const kanjiRegex = /[\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF]+/g;
+        let resultHtml = text;
+        const matches = text.match(kanjiRegex) || [];
+        
+        // ユニークな漢字（熟語）リスト
+        const uniqueMatches = [...new Set(matches)];
+        
+        for (const m of uniqueMatches) {
+            const reading = await fetchReading(m);
+            const ruby = `<ruby>${m}<rt>${reading}</rt></ruby>`;
+            resultHtml = resultHtml.split(m).join(ruby);
+        }
+        return resultHtml;
+    }
+
+    async function fetchReading(text) {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=ja&dt=rm&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        let romaji = (data[0] && data[0][0] && data[0][0][3]) ? data[0][0][3] : "";
+        let fixed = romaji.toLowerCase().replace(/[~~\-ー\s]/g, '');
+        const romajiMap = { 'ā': 'aa', 'ī': 'ii', 'ū': 'uu', 'ē': 'ei', 'ō': 'ou' };
+        Object.keys(romajiMap).forEach(key => { fixed = fixed.split(key).join(romajiMap[key]); });
+        return wanakana.toHiragana(fixed);
+    }
+
+    function updateSidePanel(text) {
+        const kanjiChars = [...new Set([...text].filter(char => /[\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF]/.test(char)))];
+        kanjiDetails.innerHTML = '';
+        
+        kanjiChars.forEach(char => {
+            const info = getKanjiGrade(char);
+            const card = document.createElement('div');
+            card.className = 'kanji-info-card';
+            
+            const searchQ = info.className === 'g-god' ? `${char} 書き順` : `site:kakijun.com ${char} 書き順`;
+            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQ)}`;
+
+            card.innerHTML = `
+                <div class="kanji-char">${char}</div>
+                <div class="kanji-meta">
+                    <div class="grade-badge ${info.className}">${info.label}</div>
+                    <a href="${searchUrl}" target="_blank" class="stroke-link">
+                        書き順アニメをみる ▶️
+                    </a>
+                </div>
+            `;
+            kanjiDetails.appendChild(card);
+        });
+    }
+
+    let timer = null;
+    input.addEventListener('input', () => {
+        const val = input.value.trim();
+        clearTimeout(timer);
+        if(!val) { displayArea.innerHTML = ''; kanjiDetails.innerHTML = ''; return; }
+        
+        timer = setTimeout(async () => {
+            // メイン表示の更新
+            const html = await buildRuby(val);
+            displayArea.innerHTML = html;
+            
+            // サイドパネルの更新
+            updateSidePanel(val);
+            
+            // フォントサイズの自動調整
+            adjustFontSize();
+        }, 600);
+    });
+
+    function adjustFontSize() {
+        let size = 80;
+        displayArea.style.fontSize = size + "px";
+        const container = displayArea.parentElement;
+        while (displayArea.scrollHeight > container.offsetHeight && size > 20) {
+            size -= 5;
+            displayArea.style.fontSize = size + "px";
+        }
+    }
+
+    window.addEventListener('resize', adjustFontSize);
+</script>
+</body>
+</html>
