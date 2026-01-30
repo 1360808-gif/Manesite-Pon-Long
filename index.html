@@ -23,80 +23,87 @@
         }
 
         header {
-            background: white; padding: 15px 25px; 
+            background: white; padding: 12px 20px; 
             box-shadow: 0 4px 0 rgba(0,0,0,0.05);
-            z-index: 100; display: flex; flex-direction: column; gap: 15px;
+            z-index: 100; display: flex; flex-direction: column; gap: 10px;
         }
         
         .header-top { display: flex; align-items: center; justify-content: space-between; }
-        .logo { font-size: 22px; font-weight: bold; color: var(--accent-orange); line-height: 1.1; }
-        .logo span { font-size: 11px; color: #888; display: block; font-weight: normal; }
+        .logo { font-size: 20px; font-weight: bold; color: var(--accent-orange); line-height: 1.1; }
+        .logo span { font-size: 10px; color: #888; display: block; font-weight: normal; }
 
-        /* 入力エリア（3行分） */
-        .input-container { width: 100%; position: relative; }
+        .input-container { width: 100%; }
         #input-text {
-            width: 100%; 
-            min-height: 90px; /* 約3行分 */
-            padding: 15px 20px; 
-            font-size: 18px; 
-            font-family: inherit;
-            border: 3px solid #eee; border-radius: 20px; outline: none;
+            width: 100%; min-height: 80px; padding: 12px 15px; 
+            font-size: 16px; font-family: inherit;
+            border: 3px solid #eee; border-radius: 15px; outline: none;
             background: #f9f9f9; box-sizing: border-box;
-            resize: vertical; /* ユーザーが手動で高さを変えられる */
-            transition: border-color 0.3s;
-            line-height: 1.5;
+            transition: border-color 0.3s; line-height: 1.4;
         }
         #input-text:focus { border-color: var(--accent-orange); background: white; }
 
         .app-layout { display: flex; flex: 1; overflow: hidden; }
 
-        /* メイン：文章表示エリア */
-        .main-column { flex: 2; padding: 20px; display: flex; flex-direction: column; }
+        /* ① メイン表示エリアを右に広げる (flex比率を3に変更) */
+        .main-column { flex: 3; padding: 15px; display: flex; flex-direction: column; }
         .focus-card {
             background: var(--card-bg); flex: 1;
-            border-radius: 30px; border: 6px solid var(--accent-orange);
+            border-radius: 30px; border: 8px solid var(--accent-orange);
             display: flex; align-items: center; justify-content: center; 
-            position: relative; box-shadow: 0 8px 0 rgba(0,0,0,0.05);
-            overflow-y: auto; padding: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+            overflow-y: auto; padding: 40px;
         }
-        .huge-text { 
-            color: #000; text-align: left; line-height: 2.2; 
-            word-break: break-all; width: 100%;
-        }
-        ruby { ruby-align: center; margin: 0 2px; }
-        rt { font-size: 0.4em; color: var(--accent-orange); font-weight: bold; }
+        .huge-text { color: #000; text-align: left; line-height: 2.3; word-break: break-all; width: 100%; }
+        ruby { ruby-align: center; margin: 0 3px; }
+        rt { font-size: 0.45em; color: var(--accent-orange); font-weight: bold; }
 
-        /* サイド：漢字情報エリア */
+        /* ② サイドパネル：2〜3列のタイルレイアウト */
         .side-column { 
-            flex: 1; background-color: #f4f6f8; 
-            border-left: 4px solid #eee; padding: 20px; overflow-y: auto; 
+            flex: 2; background-color: #f0f2f5; 
+            border-left: 2px solid #ddd; padding: 15px; overflow-y: auto; 
         }
-        .side-title { font-weight: bold; color: #666; margin-bottom: 15px; font-size: 14px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+        .side-title { font-weight: bold; color: #555; margin-bottom: 12px; font-size: 14px; }
         
+        #kanji-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); /* 列を自動調整 */
+            gap: 12px;
+        }
+
+        /* 画像を参考にした丸みのあるカードデザイン */
         .kanji-info-card {
-            background: white; padding: 12px; border-radius: 12px;
-            margin-bottom: 10px; display: flex; align-items: center;
-            justify-content: space-between; border: 2px solid #e0e0e0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: white; padding: 12px; border-radius: 24px; /* 大きめの角丸 */
+            display: flex; flex-direction: column; align-items: center;
+            border: 1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: relative;
         }
 
-        .kanji-char { font-size: 28px; font-weight: bold; margin-right: 15px; }
-        .kanji-meta { flex: 1; }
+        .kanji-top-row { display: flex; align-items: center; justify-content: space-around; width: 100%; margin-bottom: 8px; }
+
+        .kanji-char { font-size: 32px; font-weight: bold; color: #333; }
+        
+        /* 書き順ボタンを画像のようにアイコン化 */
+        .stroke-btn {
+            width: 36px; height: 36px; border-radius: 8px; background: #fff;
+            border: 1px solid #ddd; display: flex; align-items: center; justify-content: center;
+            text-decoration: none; font-size: 20px; transition: 0.2s;
+        }
+        .stroke-btn:hover { background: #e3f2fd; border-color: var(--accent-blue); }
+        .stroke-btn::after { content: "▶️"; }
+
+        /* 学年表示を画像のような楕円バッジに */
         .grade-badge {
-            display: inline-block; padding: 2px 8px; border-radius: 6px;
-            font-size: 11px; color: white; font-weight: bold; margin-bottom: 4px;
-        }
-        .stroke-link {
-            text-decoration: none; font-size: 12px; color: var(--accent-blue);
-            display: flex; align-items: center; gap: 3px; font-weight: bold;
+            width: 90%; text-align: center; padding: 4px 0; border-radius: 20px;
+            font-size: 13px; color: white; font-weight: bold;
         }
 
-        /* 学年カラー（共通） */
+        /* 学年カラー */
         .g-1 { background-color: #e91e63; } .g-2 { background-color: #ff9800; }
-        .g-3 { background-color: #fbc02d; } .g-4 { background-color: #4caf50; }
-        .g-5 { background-color: #2196f3; } .g-6 { background-color: #9c27b0; }
-        .g-jh { background-color: #34495e; } .g-master { background-color: #555; }
-        .g-god { background: linear-gradient(135deg, #000, #444); color: #ffd700 !important; border: 1px solid #ffd700; }
+        .g-3 { background-color: #fbc02d; color: #333; } /* 画像の黄色に近い色 */
+        .g-4 { background-color: #4caf50; } .g-5 { background-color: #2196f3; }
+        .g-6 { background-color: #9c27b0; } .g-jh { background-color: #455a64; }
+        .g-master { background-color: #607d8b; }
+        .g-god { background: linear-gradient(135deg, #222, #555); color: #ffd700; border: 1px solid #ffd700; }
     </style>
 </head>
 <body>
@@ -104,10 +111,10 @@
 <header>
     <div class="header-top">
         <div class="logo">マネしてポン！<span>文章おてほん ツール</span></div>
-        <div style="font-size: 12px; color: #888;">ひらがな・カタカナ・漢字 まじりで OK！</div>
+        <div style="font-size: 11px; color: #999;">漢字をみつけて 書き順も チェック！</div>
     </div>
     <div class="input-container">
-        <textarea id="input-text" placeholder="ここに 文章を 入力してね。漢字に 自動で ふりがなが つくよ！"></textarea>
+        <textarea id="input-text" placeholder="ここに 文章を 入力してね。"></textarea>
     </div>
 </header>
 
@@ -119,13 +126,12 @@
     </main>
 
     <aside class="side-column">
-        <div class="side-title">つかわれている 漢字の リスト</div>
+        <div class="side-title">つかわれている 漢字</div>
         <div id="kanji-details"></div>
     </aside>
 </div>
 
 <script>
-    // 漢字データ（省略版として定義、実用時は全データを保持）
     const GRADE_DATA = {
         1: "一右雨円王音下火花貝学気休玉金空月犬見口校左三山子四糸字耳七車手出女小上森人水正生青夕石赤千川先早草足村大中田二日入年白八百木本名目立力林六",
         2: "引羽雲園遠何科夏家歌画回会海絵外角楽活間丸岩顔汽記帰弓牛魚京強教近兄形計元言原戸古午後語工公広交光考行高黄合谷国黒今才細作算止市矢姉思紙寺自時室社弱首秋週春書少場色食心新親図数西声星晴切雪船線前組走多太体台地池知茶昼長鳥朝直通弟店点電刀冬当東答頭同道読内肉馬売買麦半番父風分聞米歩母方北毎妹万明鳴毛門野用曜羊来藍里理立話",
@@ -142,7 +148,7 @@
     const kanjiDetails = document.getElementById('kanji-details');
 
     function getKanjiGrade(char) {
-        if (GOD_KANJI_LIST.includes(char)) return { label: "神", className: "g-god" };
+        if (GOD_KANJI_LIST.includes(char)) return { label: "神レベル", className: "g-god" };
         for (let g = 1; g <= 7; g++) {
             if (GRADE_DATA[g].includes(char)) {
                 return g === 7 ? { label: "中学", className: "g-jh" } : { label: g + "年", className: "g-" + g };
@@ -152,16 +158,14 @@
     }
 
     async function buildRuby(text) {
-        // 漢字の連続を抽出
         const kanjiRegex = /[\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF]+/g;
-        let resultHtml = text.replace(/\n/g, '<br>'); // 改行対応
+        let resultHtml = text.replace(/\n/g, '<br>');
         const matches = text.match(kanjiRegex) || [];
         const uniqueMatches = [...new Set(matches)];
         
         for (const m of uniqueMatches) {
             const reading = await fetchReading(m);
             const ruby = `<ruby>${m}<rt>${reading}</rt></ruby>`;
-            // 置換時に正規表現を使ってすべて入れ替える
             resultHtml = resultHtml.split(m).join(ruby);
         }
         return resultHtml;
@@ -192,21 +196,20 @@
             const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQ)}`;
 
             card.innerHTML = `
-                <div class="kanji-char">${char}</div>
-                <div class="kanji-meta">
-                    <div class="grade-badge ${info.className}">${info.label}</div>
-                    <a href="${searchUrl}" target="_blank" class="stroke-link">書き順 ▶️</a>
+                <div class="kanji-top-row">
+                    <div class="kanji-char">${char}</div>
+                    <a href="${searchUrl}" target="_blank" class="stroke-btn" title="書き順をみる"></a>
                 </div>
+                <div class="grade-badge ${info.className}">${info.label}</div>
             `;
             kanjiDetails.appendChild(card);
         });
     }
 
     function adjustFontSize() {
-        let size = 80;
+        let size = 100;
         displayArea.style.fontSize = size + "px";
         const container = displayArea.parentElement;
-        // 枠からはみ出る場合はサイズを下げる
         while ((displayArea.scrollHeight > container.offsetHeight || displayArea.scrollWidth > container.offsetWidth) && size > 16) {
             size -= 2;
             displayArea.style.fontSize = size + "px";
